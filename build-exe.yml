@@ -1,0 +1,27 @@
+name: Build WI Builder .exe
+on:
+  workflow_dispatch: {}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble the Windows app
+        run: |
+          ELECTRON=v33.2.0
+          curl -sSL -o electron.zip "https://github.com/electron/electron/releases/download/${ELECTRON}/electron-${ELECTRON}-win32-x64.zip"
+          mkdir "WI Builder"
+          unzip -q electron.zip -d "WI Builder"
+          cd "WI Builder"
+          mv electron.exe "WI Builder.exe"
+          rm -f resources/default_app.asar
+          find locales -type f ! -name 'en-US.pak' -delete
+          mkdir -p resources/app
+          cp ../desktop/index.html ../desktop/main.js ../desktop/package.json ../desktop/icon.png resources/app/
+          cp "../desktop/README - How to run.txt" .
+          cd ..
+          zip -q -r -9 WI-Builder-win.zip "WI Builder"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WI-Builder-win
+          path: WI-Builder-win.zip
